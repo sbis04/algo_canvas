@@ -21,31 +21,16 @@ class MyApp extends StatelessWidget {
 class CanvasPage extends StatelessWidget {
   const CanvasPage({Key? key}) : super(key: key);
 
+  final totalPadding = 16 * 2;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: CustomPaint(
-            painter: GridPainter(),
-            foregroundPainter: PolygonPainter(),
-            child: Container(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Add some padding to the canvas area
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
 
     // Actual canvas area to be used for drawing
-    var canvasWidth = size.width;
-    var canvasHeight = size.height;
+    double canvasWidth = MediaQuery.of(context).size.width - totalPadding;
+    double canvasHeight =
+        MediaQuery.of(context).size.height - totalPadding - statusBarHeight;
 
     // Taking each box side to be 30 pixels
     var eachBoxSize = 30.0;
@@ -57,6 +42,38 @@ class GridPainter extends CustomPainter {
     var numberOfBoxesAlongHeight = canvasHeight ~/ eachBoxSize;
     var numberOfLinesAlongHeight = numberOfBoxesAlongHeight; // +1
 
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: CustomPaint(
+            painter: GridPainter(
+              eachBoxSize: eachBoxSize,
+              numberOfLinesAlongWidth: numberOfLinesAlongWidth,
+              numberOfLinesAlongHeight: numberOfLinesAlongHeight,
+            ),
+            foregroundPainter: PolygonPainter(),
+            child: Container(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GridPainter extends CustomPainter {
+  final double eachBoxSize;
+  final int numberOfLinesAlongWidth;
+  final int numberOfLinesAlongHeight;
+
+  GridPainter({
+    required this.eachBoxSize,
+    required this.numberOfLinesAlongWidth,
+    required this.numberOfLinesAlongHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
     // Horizontal initial offsets
     var startPointHorizontal = Offset(0, 0);
     var endPointHorizontal = Offset(numberOfLinesAlongWidth * eachBoxSize, 0);
@@ -104,6 +121,6 @@ class PolygonPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     // TODO: implement shouldRepaint
-    throw UnimplementedError();
+    return false;
   }
 }
