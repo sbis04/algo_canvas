@@ -26,6 +26,8 @@ class CanvasPage extends StatefulWidget {
 class _CanvasPageState extends State<CanvasPage> {
   List<int> _tappedList = [];
   List<Offset> _pointList = [];
+  List<String> _orientationList = ['S'];
+
   bool _isComplete = false;
 
   final double totalPadding = 16 * 2;
@@ -49,6 +51,22 @@ class _CanvasPageState extends State<CanvasPage> {
     var numberOfBoxesAlongHeight = canvasHeight ~/ eachBoxSize;
     var numberOfLinesAlongHeight = numberOfBoxesAlongHeight; // +1
 
+    void _orientation(Offset p1, Offset p2, Offset p3) {
+      var slope =
+          (p2.dy - p1.dy) * (p3.dx - p2.dx) - (p2.dx - p1.dx) * (p3.dy - p2.dy);
+
+      if (slope == 0) {
+        print(''); // Linear
+        _orientationList.add('');
+      } else if (slope > 0) {
+        print('R'); // Clockwise
+        _orientationList.add('R');
+      } else {
+        print('L'); // Counter Clockwise
+        _orientationList.add('L');
+      }
+    }
+
     print(_tappedList);
 
     return Scaffold(
@@ -63,6 +81,7 @@ class _CanvasPageState extends State<CanvasPage> {
             ),
             foregroundPainter: PolygonPainter(
               pointList: _pointList,
+              orientationList: _orientationList,
               polygonColor: _isComplete ? Colors.green : Colors.red,
               eachBoxSize: eachBoxSize,
               numberOfLinesAlongWidth: numberOfLinesAlongWidth,
@@ -84,6 +103,14 @@ class _CanvasPageState extends State<CanvasPage> {
                             Offset(eachBoxSize, eachBoxSize) -
                             Offset(
                                 totalPadding, totalPadding + statusBarHeight);
+
+                        if (_pointList.length > 1) {
+                          _orientation(
+                            pointOffset,
+                            _pointList[_pointList.length - 1],
+                            _pointList[_pointList.length - 2],
+                          );
+                        }
 
                         if (_pointList.length > 2) {
                           if (_pointList.contains(pointOffset)) {
@@ -193,6 +220,7 @@ class GridPainter extends CustomPainter {
 }
 
 class PolygonPainter extends CustomPainter {
+  final List<String> orientationList;
   final Color polygonColor;
   final List<Offset> pointList;
   final double eachBoxSize;
@@ -200,6 +228,7 @@ class PolygonPainter extends CustomPainter {
   final int numberOfLinesAlongHeight;
 
   PolygonPainter({
+    required this.orientationList,
     required this.polygonColor,
     required this.pointList,
     required this.eachBoxSize,
@@ -220,13 +249,46 @@ class PolygonPainter extends CustomPainter {
         var startPoint = pointList[i];
         var endPoint = pointList[i + 1];
 
+        final textSpan = TextSpan(
+          text: orientationList[i],
+          style: TextStyle(color: Colors.black, fontSize: 14),
+        );
+
+        var textPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+        )..layout(minWidth: 0, maxWidth: 10);
+
+        var textPosition;
+
+        if (orientationList[i] == 'L') {
+          textPosition = startPoint - Offset(0, 20);
+        } else {
+          textPosition = startPoint - Offset(0, 20);
+        }
+
         canvas.drawLine(startPoint, endPoint, linePaint);
+        textPainter.paint(canvas, textPosition);
       }
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    // Repainting every time
+    return false;
+  }
+}
+
+class VisualizingPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // TODO: implement paint
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    // Repainting every time
     return true;
   }
 }
